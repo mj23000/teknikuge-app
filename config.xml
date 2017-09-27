@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="net.tigoe.simpleserial" version="1" xmlns="http://www.w3.org/ns/widgets" >
-    <name>Harald Blaatand - En fræk lille controller</name>
+    <name>Teknikuge robot</name>
     <description>
         En næsten godt fungerende controller til en Arduino bluetooth robot
     </description>

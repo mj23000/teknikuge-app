@@ -1,0 +1,158 @@
+
+#include <SoftwareSerial.h>
+int bluetoothTx = 9;
+int bluetoothRx = 10;
+
+int retningVenstreEt = 8;
+int retningVenstreTo = 7;
+int retningHoejreEt = 3;
+int retningHoejreTo = 4;
+int hastighedVenstre = 6;
+int hastighedHoejre= 5;
+int forlygte = A0;
+int baglygte = A1;
+int dytBaat = A3;
+int ledFL = 13;
+const long trigger = A5;
+const long echo = A4;
+long centimeter = 0;
+
+
+SoftwareSerial bluetooth(bluetoothTx, bluetoothRx);//Arduino RX,Tx
+char besked;
+int counter = 0;
+
+void setup() {
+  pinMode(retningVenstreEt, OUTPUT);
+  pinMode(retningVenstreTo, OUTPUT);
+  pinMode(retningHoejreEt, OUTPUT);
+  pinMode(retningHoejreTo, OUTPUT);
+  pinMode(hastighedVenstre, OUTPUT);
+  pinMode(hastighedHoejre, OUTPUT);
+  pinMode(forlygte, OUTPUT);
+  pinMode(baglygte, OUTPUT);
+  pinMode(ledFL, OUTPUT);
+  pinMode(trigger, OUTPUT);
+  pinMode(echo, INPUT);
+  pinMode(13,OUTPUT);
+  digitalWrite(13,LOW);
+  pinMode(dytBaat, OUTPUT);
+  bluetooth.begin(115200);//standard bluetooth mate
+  Serial.begin(9600);
+}
+
+void loop() {
+
+  bluetooth.listen();
+  inputBluetooth();
+  Serial.println(counter);
+  bluetooth.println(counter);
+  counter++;
+  delay(10);
+
+  digitalWrite(trigger, LOW);
+  delayMicroseconds(5);
+  digitalWrite(trigger, HIGH);
+  delayMicroseconds( 10);
+  digitalWrite(trigger, LOW);
+
+centimeter = pulseIn(echo, HIGH);
+
+centimeter = centimeter/58;
+  if (centimeter<=20){
+  digitalWrite(retningVenstreEt, LOW);
+  digitalWrite(retningVenstreTo, HIGH);
+  digitalWrite(retningHoejreEt, LOW);
+  digitalWrite(retningHoejreTo, HIGH);
+  analogWrite(hastighedVenstre, 255); 
+  analogWrite(hastighedHoejre, 255);
+  delay(100);
+  hastighedstop();
+  }
+  
+if (centimeter>=400){
+  centimeter = Serial.print("\nFejl \n");
+  }
+  else{
+    Serial.println(" centimeter");
+    Serial.print(centimeter);
+}  
+
+void hastighedStop(){
+  analogWrite(hastighedVenstre, 1); 
+  analogWrite(hastighedHoejre, 1);
+}
+
+void frem(){
+  digitalWrite(retningVenstreEt, HIGH);
+  digitalWrite(retningVenstreTo, LOW);
+  digitalWrite(retningHoejreEt, HIGH);
+  digitalWrite(retningHoejreTo, LOW);
+  analogWrite(hastighedVenstre, 255); 
+  analogWrite(hastighedHoejre, 255);
+}
+
+void tilbage(){
+  digitalWrite(retningVenstreEt, LOW);
+  digitalWrite(retningVenstreTo, HIGH);
+  digitalWrite(retningHoejreEt, LOW);
+  digitalWrite(retningHoejreTo, HIGH);
+  analogWrite(hastighedVenstre, 255); 
+  analogWrite(hastighedHoejre, 255);
+}
+
+void venstreFrem(){
+  digitalWrite(retningVenstreEt, HIGH);
+  digitalWrite(retningVenstreTo, LOW);
+  digitalWrite(retningHoejreEt, HIGH);
+  digitalWrite(retningHoejreTo, LOW);
+  analogWrite(hastighedVenstre, 170); 
+  analogWrite(hastighedHoejre, 90);
+  
+}
+
+void hoejreFrem(){
+  digitalWrite(retningHoejreEt, HIGH);
+  digitalWrite(retningHoejreTo, LOW);
+  digitalWrite(retningVenstreEt, HIGH);
+  digitalWrite(retningVenstreTo, LOW);
+  analogWrite(hastighedVenstre, 90); 
+  analogWrite(hastighedHoejre, 170);
+}
+
+
+void inputBluetooth(){
+  char msg;
+  if(bluetooth.available()){ 
+    besked= (char)bluetooth.read(); 
+    if(besked=='f'){
+      frem();
+    }
+    else if(besked=='v'){
+      venstreFrem();
+    }
+    else if(besked=='t'){
+      tilbage();
+    }
+    else if(besked=='h'){
+      hoejreFrem();
+    }
+    else if (besked=='l'){
+      digitalWrite(A0, HIGH);
+      digitalWrite(A1, HIGH);
+    }
+    else if (besked=='n'){
+      digitalWrite(forlygte, LOW);
+      digitalWrite(baglygte, LOW);
+    }
+    else if (besked=='b'){
+      digitalWrite(dytBaat, 100);
+      delay(80);
+      analogWrite(dytBaat, 0);
+    } 
+    else if(besked =='s'){
+      hastighedStop();
+    }     
+    bluetooth.print(besked); //returner det modtagne
+  }
+}
